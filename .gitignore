@@ -1,0 +1,18 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# Environment files - never commit real secrets
+.env
+.env.local
+*.env
+
+# Backend (Maven / Java) - see fasttrack-backend/.gitignore for details
+fasttrack-backend/target/
+
+# Frontend (Node / Vite) - see fasttrack-frontend/.gitignore for details
+fasttrack-frontend/node_modules/
+fasttrack-frontend/dist/

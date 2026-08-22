@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: fasttrack-backend
+    runtime: docker
+    rootDir: fasttrack-backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: APP_JWT_SECRET
+        sync: false
+      - key: APP_JWT_EXPIRATION_HOURS
+        value: "24"
+      - key: APP_ADMIN_USERNAME
+        sync: false
+      - key: APP_ADMIN_PASSWORD_HASH
+        sync: false
+      - key: APP_ENCRYPTION_KEY
+        sync: false
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: APP_FRONTEND_BASE_URL
+        sync: false
