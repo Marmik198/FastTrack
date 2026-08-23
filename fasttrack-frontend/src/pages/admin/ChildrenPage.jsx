@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import apiClient from '../../api/apiClient.js';
 
 const emptyForm = {
@@ -38,6 +39,10 @@ export default function ChildrenPage() {
   const [data, setData] = useState({ content: [], totalElements: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
+  const [uploadError, setUploadError] = useState('');
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -55,6 +60,28 @@ export default function ChildrenPage() {
   }, [search, page, rowsPerPage]);
 
   useEffect(load, [load]);
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError('');
+    setUploadResult(null);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await apiClient.post('/api/admin/children/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setUploadResult(res.data);
+      load();
+    } catch (err) {
+      setUploadError(err?.response?.data?.error || 'Failed to upload file');
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
 
   const openCreate = () => {
     setEditingId(null);
@@ -110,6 +137,32 @@ export default function ChildrenPage() {
           Add Child
         </Button>
       </Stack>
+
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Typography variant="subtitle1" gutterBottom>Add multiple children at once</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Accepts .csv, .txt, or .xlsx. Header row needs <code>firstName</code>, <code>lastName</code>, and{' '}
+          <code>mobile</code> (required); <code>motherName</code>, <code>fatherName</code>, <code>alternateMobile</code>,{' '}
+          <code>email</code>, <code>age</code>, <code>dateOfBirth</code> (YYYY-MM-DD), and <code>address</code> are optional.
+          Rows with a mobile number that already exists are skipped, not duplicated.
+        </Typography>
+        <Button component="label" variant="contained" startIcon={<UploadFileIcon />} disabled={uploading}>
+          {uploading ? 'Uploading...' : 'Choose file'}
+          <input type="file" accept=".csv,.txt,.xlsx,.xls" hidden onChange={handleFileUpload} />
+        </Button>
+        {uploadError && <Alert severity="error" sx={{ mt: 2 }}>{uploadError}</Alert>}
+        {uploadResult && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            Processed {uploadResult.rowsProcessed} rows — {uploadResult.childrenCreated} children created,{' '}
+            {uploadResult.childrenSkipped} skipped as duplicates.
+            {uploadResult.errors.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                {uploadResult.errors.map((e, i) => <Typography key={i} variant="body2">{e}</Typography>)}
+              </Box>
+            )}
+          </Alert>
+        )}
+      </Paper>
 
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
         <TextField
